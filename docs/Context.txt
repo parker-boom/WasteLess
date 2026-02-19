@@ -1,10 +1,1 @@
-WasteLess Context
-
-Project: CSC484 group project
-Format: website built to simulate a phone app experience
-Architecture: single-layer frontend app (React + TypeScript + Tailwind)
-Data: localStorage only (no backend/database)
-Current Scaffold:
-- Fixed phone frame shell at the top level
-- Three tabs/pages: Home, Recipe, Alerts
-- Bottom tab bar with icons
+ADD HERE
