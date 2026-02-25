@@ -22,10 +22,7 @@ export function AddItemsScanPage({ onBack, onDone }: AddItemsScanPageProps) {
       }
 
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' },
-          audio: false,
-        })
+        const stream = await requestCameraStream()
 
         if (cancelled) {
           stream.getTracks().forEach((track) => track.stop())
@@ -33,13 +30,15 @@ export function AddItemsScanPage({ onBack, onDone }: AddItemsScanPageProps) {
         }
 
         streamRef.current = stream
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream
-          await videoRef.current.play()
-        }
-
         setCameraState('ready')
+
+        const videoEl = videoRef.current
+        if (videoEl) {
+          videoEl.srcObject = stream
+          void videoEl.play().catch(() => {
+            // Some browsers require a gesture before playback; stream is still attached.
+          })
+        }
       } catch (error) {
         const denied =
           error instanceof DOMException &&
@@ -64,28 +63,31 @@ export function AddItemsScanPage({ onBack, onDone }: AddItemsScanPageProps) {
       <header className="screen-header">
         <p className="screen-overline">Add Items</p>
         <h1 className="screen-title">Capture barcode(s)</h1>
-        <p className="inventory-meta">
-          Demo mode is active. Press done to continue with mock scanned items.
-        </p>
       </header>
 
       <div className="scanner-frame">
-        {cameraState === 'ready' ? (
-          <video ref={videoRef} muted playsInline className="scanner-video" />
-        ) : (
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          playsInline
+          className={`scanner-video ${cameraState === 'ready' ? 'is-visible' : 'is-hidden'}`}
+        />
+
+        {cameraState !== 'ready' ? (
           <div className="scanner-placeholder">
             {cameraState === 'loading' ? 'Starting camera...' : null}
             {cameraState === 'unsupported'
               ? 'Camera preview is not supported in this browser.'
               : null}
             {cameraState === 'denied'
-              ? 'Camera access was denied. You can still continue in demo mode.'
+              ? 'Camera access was denied. You can still continue.'
               : null}
             {cameraState === 'error'
-              ? 'Camera failed to start. Continue with demo mode.'
+              ? 'Camera failed to start. You can still continue.'
               : null}
           </div>
-        )}
+        ) : null}
       </div>
 
       <div className="split-actions">
@@ -98,4 +100,39 @@ export function AddItemsScanPage({ onBack, onDone }: AddItemsScanPageProps) {
       </div>
     </section>
   )
+}
+
+async function requestCameraStream(): Promise<MediaStream> {
+  const attempts: MediaStreamConstraints[] = [
+    {
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+      },
+      audio: false,
+    },
+    { video: { facingMode: { ideal: 'user' } }, audio: false },
+    { video: true, audio: false },
+  ]
+
+  let lastError: unknown = null
+
+  for (const constraints of attempts) {
+    try {
+      return await navigator.mediaDevices.getUserMedia(constraints)
+    } catch (error) {
+      lastError = error
+
+      const isPermissionError =
+        error instanceof DOMException &&
+        (error.name === 'NotAllowedError' || error.name === 'SecurityError')
+
+      if (isPermissionError) {
+        throw error
+      }
+    }
+  }
+
+  throw lastError ?? new Error('Unable to initialize camera stream')
 }

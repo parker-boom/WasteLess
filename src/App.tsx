@@ -28,6 +28,7 @@ const initialInventorySeed = createInitialInventory()
 const initialReminderSeed = createInitialReminders(initialInventorySeed)
 
 function App() {
+  const [sessionVersion, setSessionVersion] = useState(0)
   const [inventory, setInventory] = useState<InventoryItem[]>(
     () => initialInventorySeed,
   )
@@ -224,6 +225,18 @@ function App() {
     setScreen({ id: 'home' })
   }
 
+  const resetToInitialState = () => {
+    const freshInventory = createInitialInventory()
+    const freshReminders = createInitialReminders(freshInventory)
+
+    setInventory(freshInventory)
+    setReminders(freshReminders)
+    setScanItems([])
+    setScreen({ id: 'home' })
+    setModal({ id: 'none' })
+    setSessionVersion((value) => value + 1)
+  }
+
   let content: ReactNode = null
 
   if (screen.id === 'home') {
@@ -291,25 +304,51 @@ function App() {
 
   return (
     <>
-      <AppScaffold activeTab={activeTab} showBottomNav={showBottomNav} onNavigate={goToTab}>
-        {content}
+      <AppScaffold
+        activeTab={activeTab}
+        showBottomNav={showBottomNav}
+        onNavigate={goToTab}
+        overlay={
+          <ModalHost
+            modal={modal}
+            inventory={inventory}
+            reminders={reminders}
+            scanItems={scanItems}
+            onClose={() => setModal({ id: 'none' })}
+            onSubmitHomeReminder={submitHomeReminder}
+            onConfirmHomeRemove={confirmHomeRemove}
+            onSaveScanItem={saveScanItem}
+            onConfirmScanRemove={confirmScanRemove}
+            onSaveReminder={saveReminder}
+            onConfirmReminderCancel={confirmReminderCancel}
+          />
+        }
+      >
+        <div key={sessionVersion}>{content}</div>
       </AppScaffold>
 
-      <ModalHost
-        modal={modal}
-        inventory={inventory}
-        reminders={reminders}
-        scanItems={scanItems}
-        onClose={() => setModal({ id: 'none' })}
-        onSubmitHomeReminder={submitHomeReminder}
-        onConfirmHomeRemove={confirmHomeRemove}
-        onSaveScanItem={saveScanItem}
-        onConfirmScanRemove={confirmScanRemove}
-        onSaveReminder={saveReminder}
-        onConfirmReminderCancel={confirmReminderCancel}
-      />
+      <button
+        type="button"
+        className="global-refresh-button"
+        onClick={resetToInitialState}
+        title="Reset app demo state"
+        aria-label="Reset app demo state"
+      >
+        <RefreshIcon />
+      </button>
     </>
   )
 }
 
 export default App
+
+function RefreshIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M12 4a8 8 0 0 1 7.34 4.8.75.75 0 0 1-1.38.58A6.5 6.5 0 1 0 18 15h-1.8a.75.75 0 0 1-.53-1.28l2.95-2.94a.75.75 0 0 1 1.06 0l2.94 2.94a.75.75 0 0 1-.53 1.28H19.5A7.5 7.5 0 1 1 12 4z"
+      />
+    </svg>
+  )
+}

@@ -34,10 +34,11 @@ export function RemindersPage({
 
       <button
         type="button"
-        className="primary-button full-width"
+        className="primary-button full-width reminders-new-button"
         onClick={onRequestNewReminder}
       >
-        set new
+        <PlusGlyph />
+        <span>set new</span>
       </button>
 
       <div className="list-stack">
@@ -64,7 +65,9 @@ export function RemindersPage({
                 onClick={() => onRequestEditReminder(reminder.id)}
                 title="Edit reminder"
               >
-                <span className="icon-bubble">e</span>
+                <span className="icon-bubble">
+                  <PencilGlyph />
+                </span>
               </button>
 
               <button
@@ -89,5 +92,27 @@ export function RemindersPage({
         load more
       </button>
     </section>
+  )
+}
+
+function PencilGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="currentColor"
+        d="M16.86 3.49a2 2 0 0 1 2.83 0l.82.82a2 2 0 0 1 0 2.83l-9.5 9.5a1 1 0 0 1-.45.26l-3.44.98a.75.75 0 0 1-.92-.92l.98-3.44a1 1 0 0 1 .26-.45l9.42-9.58zM7.67 14.48l-.58 2.05 2.05-.58 8.79-8.79-1.47-1.47-8.79 8.79z"
+      />
+    </svg>
+  )
+}
+
+function PlusGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="reminders-new-plus">
+      <path
+        fill="currentColor"
+        d="M12 4.5a.75.75 0 0 1 .75.75v6h6a.75.75 0 0 1 0 1.5h-6v6a.75.75 0 0 1-1.5 0v-6h-6a.75.75 0 0 1 0-1.5h6v-6A.75.75 0 0 1 12 4.5z"
+      />
+    </svg>
   )
 }

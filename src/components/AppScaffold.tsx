@@ -6,6 +6,7 @@ type AppScaffoldProps = {
   showBottomNav: boolean
   onNavigate: (tab: MainTab) => void
   children: ReactNode
+  overlay?: ReactNode
 }
 
 export function AppScaffold({
@@ -13,6 +14,7 @@ export function AppScaffold({
   showBottomNav,
   onNavigate,
   children,
+  overlay,
 }: AppScaffoldProps) {
   return (
     <div className="app-backdrop">
@@ -28,7 +30,11 @@ export function AppScaffold({
             <span />
             <span />
           </button>
-          <p className="app-title">WasteLess</p>
+
+          <div className="app-brand">
+            <img src="/LogoFinalWL.png" alt="WasteLess logo" className="app-logo" />
+            <p className="app-title">WasteLess</p>
+          </div>
         </header>
 
         <main className="app-content">{children}</main>
@@ -36,6 +42,8 @@ export function AppScaffold({
         {showBottomNav ? (
           <BottomNav activeTab={activeTab} onNavigate={onNavigate} />
         ) : null}
+
+        {overlay ?? null}
       </div>
     </div>
   )
@@ -59,7 +67,7 @@ function BottomNav({ activeTab, onNavigate }: BottomNavProps) {
         label="Home"
         isActive={activeTab === 'home'}
         onClick={() => onNavigate('home')}
-        icon={<ClockIcon />}
+        icon={<HomeIcon />}
       />
       <NavButton
         label="Reminders"
@@ -102,12 +110,12 @@ function RecipeIcon() {
   )
 }
 
-function ClockIcon() {
+function HomeIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path
         fill="currentColor"
-        d="M12 2.25a9.75 9.75 0 1 0 0 19.5 9.75 9.75 0 0 0 0-19.5zm.75 4a.75.75 0 0 0-1.5 0v6c0 .2.08.39.22.53l3.5 3.5a.75.75 0 1 0 1.06-1.06l-3.28-3.29V6.25z"
+        d="M12 3.25a1 1 0 0 1 .65.24l7 5.98a1 1 0 0 1-.65 1.76h-.75v7a1.75 1.75 0 0 1-1.75 1.75h-3.5a1 1 0 0 1-1-1v-4h-2v4a1 1 0 0 1-1 1H5.5a1.75 1.75 0 0 1-1.75-1.75v-7H3a1 1 0 0 1-.65-1.76l7-5.98a1 1 0 0 1 .65-.24z"
       />
     </svg>
   )
