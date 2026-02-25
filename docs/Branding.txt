@@ -1,1 +1,38 @@
-ADD HERE
+WasteLess Branding Notes
+
+Sources reviewed
+- docs/ Branding/WasteLess.png
+- docs/ Branding/logoOrig.png
+- docs/ Branding/logoGC.png
+- docs/ Branding/logoC2.png
+- docs/ Branding/logoBR.png
+
+Core brand colors (from WasteLess palette row)
+- #2B0000 - very dark burgundy
+- #5E0101 - deep red
+- #860D0D - rich accent red
+- #F2ECCD - warm cream / light neutral
+
+Supporting colors (from logo variants)
+- #565656 - charcoal gray (logoGC/logoC2 background)
+- #F2ECCE - ivory cream used in icon strokes/fills
+- #FFFFFF - white base in line-art version (logoOrig)
+- Brown/beige range appears in logoBR (examples: #403A2E, #7E6B50, #1F1B14) with cream highlights
+
+Typography
+- Primary display serif (exact family not named in files):
+  Used for "Waste Less", "Healthy", "Save", "Reduce", and the large "Aa" sample.
+  Visual style: elegant, classic serif with high contrast and soft curves.
+- Secondary/support font: "Catchy Mager" (explicitly shown on the board):
+  Displayed with full alphabet sample (Aa-Zz) and used as a cleaner, more modern companion.
+
+Visual identity cues
+- Main motif: hourglass icon with a tomato at the top, salad bowl at the bottom, and falling ingredients.
+- Core message words: Healthy / Save / Reduce.
+- Image direction: bright, appetizing food photography (pasta, salad, egg toast, salmon/vegetables).
+- Typical contrast pattern: cream text/icons on deep red backgrounds.
+
+Practical usage guidance
+- Keep red backgrounds dominant and reserve cream for text, icon lines, and high-contrast highlights.
+- Use the serif style for brand-forward headlines/wordmark moments.
+- Use Catchy Mager (or nearest available match) for supportive copy and UI text blocks.

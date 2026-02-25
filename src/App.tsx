@@ -1,129 +1,314 @@
-import { useEffect, useState } from 'react'
+import { type ReactNode, useMemo, useState } from 'react'
+import { addDaysIso } from './app/date'
+import {
+  createInitialInventory,
+  createInitialReminders,
+  createMockScannedItems,
+  nextId,
+  stagedProfile,
+} from './app/content'
+import type {
+  InventoryItem,
+  MainTab,
+  ModalState,
+  Reminder,
+  ScanDraftItem,
+  Screen,
+} from './app/types'
+import { AppScaffold } from './components/AppScaffold'
+import { ModalHost } from './components/ModalHost'
+import { AddItemsConfirmPage } from './pages/AddItemsConfirmPage'
+import { AddItemsScanPage } from './pages/AddItemsScanPage'
+import { HomePage } from './pages/HomePage'
+import { RecipeDetailPage } from './pages/RecipeDetailPage'
+import { RecipesPage } from './pages/RecipesPage'
+import { RemindersPage } from './pages/RemindersPage'
 
-type TabId = 'home' | 'recipe' | 'alerts'
-
-type TabConfig = {
-  id: TabId
-  label: string
-}
-
-const tabStorageKey = 'wasteless.activeTab'
-
-const tabs: TabConfig[] = [
-  { id: 'home', label: 'Home' },
-  { id: 'recipe', label: 'Recipe' },
-  { id: 'alerts', label: 'Alerts' },
-]
-
-const tabCopy: Record<TabId, { subtitle: string }> = {
-  home: { subtitle: 'Daily dashboard' },
-  recipe: { subtitle: 'Recipe ideas' },
-  alerts: { subtitle: 'Smart reminders' },
-}
-
-function isTabId(value: string | null): value is TabId {
-  return tabs.some((tab) => tab.id === value)
-}
-
-function HomeIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-      <path
-        d="M3.75 10.75L12 4l8.25 6.75v8.25a1 1 0 0 1-1 1h-5.5v-6h-3.5v6h-5.5a1 1 0 0 1-1-1v-8.25z"
-        fill="currentColor"
-      />
-    </svg>
-  )
-}
-
-function RecipeIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-      <path
-        d="M5 5.5a2.5 2.5 0 0 1 2.5-2.5H18a1 1 0 0 1 1 1v16a1 1 0 0 1-1.6.8l-3.4-2.55L10.6 20.8A1 1 0 0 1 9 20V5.5z"
-        fill="currentColor"
-      />
-      <rect x="7.5" y="7.5" width="8.5" height="1.5" rx=".75" fill="white" />
-      <rect x="7.5" y="11" width="6.5" height="1.5" rx=".75" fill="white" />
-    </svg>
-  )
-}
-
-function AlertsIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-      <path
-        d="M12 3.5a5.5 5.5 0 0 0-5.5 5.5v2.4c0 .8-.2 1.58-.57 2.3L4.5 16.5h15l-1.43-2.8a5.2 5.2 0 0 1-.57-2.3V9A5.5 5.5 0 0 0 12 3.5z"
-        fill="currentColor"
-      />
-      <path
-        d="M9.5 18.5a2.5 2.5 0 0 0 5 0h-5z"
-        fill="currentColor"
-      />
-    </svg>
-  )
-}
-
-const iconMap: Record<TabId, () => ReturnType<typeof HomeIcon>> = {
-  home: HomeIcon,
-  recipe: RecipeIcon,
-  alerts: AlertsIcon,
-}
+const initialInventorySeed = createInitialInventory()
+const initialReminderSeed = createInitialReminders(initialInventorySeed)
 
 function App() {
-  const [activeTab, setActiveTab] = useState<TabId>(() => {
-    if (typeof window === 'undefined') {
-      return 'home'
+  const [inventory, setInventory] = useState<InventoryItem[]>(
+    () => initialInventorySeed,
+  )
+  const [reminders, setReminders] = useState<Reminder[]>(() => initialReminderSeed)
+  const [scanItems, setScanItems] = useState<ScanDraftItem[]>([])
+  const [screen, setScreen] = useState<Screen>({ id: 'home' })
+  const [modal, setModal] = useState<ModalState>({ id: 'none' })
+
+  const activeTab = useMemo<MainTab>(() => {
+    if (screen.id === 'recipes' || screen.id === 'recipeDetail') {
+      return 'recipes'
+    }
+    if (screen.id === 'reminders') {
+      return 'reminders'
+    }
+    return 'home'
+  }, [screen.id])
+
+  const showBottomNav = screen.id !== 'addItemsScan' && screen.id !== 'addItemsConfirm'
+
+  const goToTab = (tab: MainTab) => {
+    if (tab === 'home') {
+      setScreen({ id: 'home' })
+      return
+    }
+    if (tab === 'recipes') {
+      setScreen({ id: 'recipes' })
+      return
+    }
+    setScreen({ id: 'reminders' })
+  }
+
+  const selectedRecipe =
+    screen.id === 'recipeDetail'
+      ? stagedProfile.recipes.find((recipe) => recipe.id === screen.recipeId)
+      : null
+
+  const submitHomeReminder = (
+    inventoryItemId: number,
+    remindInDays: number,
+    time: string,
+  ) => {
+    const item = inventory.find((entry) => entry.id === inventoryItemId)
+    if (!item) {
+      setModal({ id: 'none' })
+      return
     }
 
-    const savedTab = window.localStorage.getItem(tabStorageKey)
-    return isTabId(savedTab) ? savedTab : 'home'
-  })
+    setReminders((previous) => {
+      const existingReminder = previous.find(
+        (entry) => entry.inventoryItemId === inventoryItemId,
+      )
 
-  useEffect(() => {
-    window.localStorage.setItem(tabStorageKey, activeTab)
-  }, [activeTab])
+      if (existingReminder) {
+        return previous.map((entry) =>
+          entry.id === existingReminder.id
+            ? { ...entry, remindInDays, time, itemName: item.name }
+            : entry,
+        )
+      }
+
+      return [
+        ...previous,
+        {
+          id: nextId(previous),
+          inventoryItemId,
+          itemName: item.name,
+          remindInDays,
+          time,
+        },
+      ]
+    })
+
+    setModal({
+      id: 'homeReminderSet',
+      itemName: item.name,
+      remindInDays,
+      time,
+    })
+  }
+
+  const confirmHomeRemove = (inventoryItemId: number) => {
+    const item = inventory.find((entry) => entry.id === inventoryItemId)
+    setInventory((previous) => previous.filter((entry) => entry.id !== inventoryItemId))
+    setReminders((previous) =>
+      previous.filter((entry) => entry.inventoryItemId !== inventoryItemId),
+    )
+
+    if (!item) {
+      setModal({ id: 'none' })
+      return
+    }
+
+    setModal({ id: 'homeItemRemoved', itemName: item.name })
+  }
+
+  const saveScanItem = (
+    scanItemId: number,
+    updates: Pick<ScanDraftItem, 'name' | 'quantity' | 'expirationInDays'>,
+  ) => {
+    setScanItems((previous) =>
+      previous.map((entry) =>
+        entry.id === scanItemId
+          ? {
+              ...entry,
+              name: updates.name,
+              quantity: updates.quantity,
+              expirationInDays: updates.expirationInDays,
+            }
+          : entry,
+      ),
+    )
+    setModal({ id: 'none' })
+  }
+
+  const confirmScanRemove = (scanItemId: number) => {
+    setScanItems((previous) => previous.filter((entry) => entry.id !== scanItemId))
+    setModal({ id: 'none' })
+  }
+
+  const saveReminder = (
+    reminderId: number | undefined,
+    inventoryItemId: number,
+    remindInDays: number,
+    time: string,
+  ) => {
+    const item = inventory.find((entry) => entry.id === inventoryItemId)
+    if (!item) {
+      setModal({ id: 'none' })
+      return
+    }
+
+    setReminders((previous) => {
+      if (typeof reminderId === 'number') {
+        return previous.map((entry) =>
+          entry.id === reminderId
+            ? { ...entry, inventoryItemId, itemName: item.name, remindInDays, time }
+            : entry,
+        )
+      }
+
+      return [
+        ...previous,
+        {
+          id: nextId(previous),
+          inventoryItemId,
+          itemName: item.name,
+          remindInDays,
+          time,
+        },
+      ]
+    })
+
+    setModal({ id: 'none' })
+  }
+
+  const confirmReminderCancel = (reminderId: number) => {
+    const reminder = reminders.find((entry) => entry.id === reminderId)
+    setReminders((previous) => previous.filter((entry) => entry.id !== reminderId))
+
+    if (!reminder) {
+      setModal({ id: 'none' })
+      return
+    }
+
+    setModal({ id: 'reminderRemoved', itemName: reminder.itemName })
+  }
+
+  const openAddItemsScan = () => {
+    setScreen({ id: 'addItemsScan' })
+    setModal({ id: 'none' })
+  }
+
+  const runMockScan = () => {
+    setScanItems(createMockScannedItems())
+    setScreen({ id: 'addItemsConfirm' })
+  }
+
+  const confirmScannedItems = () => {
+    setInventory((previous) => {
+      const startingId = nextId(previous)
+      const scannedAsInventory = scanItems.map((item, index) => ({
+        id: startingId + index,
+        name: item.name,
+        category: item.category,
+        caloriesPerUnit: item.caloriesPerUnit,
+        expirationDate: addDaysIso(item.expirationInDays),
+        quantity: item.quantity,
+      }))
+
+      return [...previous, ...scannedAsInventory]
+    })
+    setScanItems([])
+    setScreen({ id: 'home' })
+  }
+
+  let content: ReactNode = null
+
+  if (screen.id === 'home') {
+    content = (
+      <HomePage
+        items={inventory}
+        reminders={reminders}
+        onRequestSetReminder={(inventoryItemId) =>
+          setModal({ id: 'homeSetReminder', inventoryItemId })
+        }
+        onRequestRemoveItem={(inventoryItemId) =>
+          setModal({ id: 'homeRemoveItem', inventoryItemId })
+        }
+        onOpenAddItems={openAddItemsScan}
+      />
+    )
+  } else if (screen.id === 'recipes') {
+    content = (
+      <RecipesPage
+        recipes={stagedProfile.recipes}
+        inventory={inventory}
+        onOpenRecipe={(recipeId) => setScreen({ id: 'recipeDetail', recipeId })}
+      />
+    )
+  } else if (screen.id === 'recipeDetail') {
+    content = selectedRecipe ? (
+      <RecipeDetailPage
+        recipe={selectedRecipe}
+        inventory={inventory}
+        onBack={() => setScreen({ id: 'recipes' })}
+      />
+    ) : (
+      <section className="screen">
+        <p className="empty-state">Recipe not found.</p>
+      </section>
+    )
+  } else if (screen.id === 'reminders') {
+    content = (
+      <RemindersPage
+        reminders={reminders}
+        onRequestNewReminder={() => setModal({ id: 'reminderEditor' })}
+        onRequestEditReminder={(reminderId) =>
+          setModal({ id: 'reminderEditor', reminderId })
+        }
+        onRequestCancelReminder={(reminderId) =>
+          setModal({ id: 'reminderCancel', reminderId })
+        }
+      />
+    )
+  } else if (screen.id === 'addItemsScan') {
+    content = (
+      <AddItemsScanPage onBack={() => setScreen({ id: 'home' })} onDone={runMockScan} />
+    )
+  } else if (screen.id === 'addItemsConfirm') {
+    content = (
+      <AddItemsConfirmPage
+        items={scanItems}
+        onBack={() => setScreen({ id: 'addItemsScan' })}
+        onRequestEdit={(scanItemId) => setModal({ id: 'scanEditItem', scanItemId })}
+        onRequestRemove={(scanItemId) => setModal({ id: 'scanRemoveItem', scanItemId })}
+        onConfirm={confirmScannedItems}
+      />
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(160deg,#e3f7ea_0%,#f7fbff_55%,#d7f0fb_100%)] px-4 py-[10vh]">
-      <div className="mx-auto flex h-[80vh] w-[390px] max-w-full flex-col overflow-hidden rounded-[2.5rem] border-[10px] border-slate-900 bg-white shadow-[0_25px_65px_rgba(15,23,42,0.35)]">
-        <header className="flex items-center justify-center border-b border-slate-200 px-5 py-4">
-          <div className="h-1.5 w-16 rounded-full bg-slate-300" />
-        </header>
+    <>
+      <AppScaffold activeTab={activeTab} showBottomNav={showBottomNav} onNavigate={goToTab}>
+        {content}
+      </AppScaffold>
 
-        <main className="flex flex-1 items-center justify-center px-8 py-10">
-          <div className="text-center">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">
-              {tabCopy[activeTab].subtitle}
-            </p>
-            <h1 className="mt-3 text-4xl font-bold tracking-tight text-slate-900">
-              WasteLess
-            </h1>
-          </div>
-        </main>
-
-        <nav className="grid grid-cols-3 border-t border-slate-200 bg-white/90">
-          {tabs.map((tab) => {
-            const Icon = iconMap[tab.id]
-            const isActive = activeTab === tab.id
-
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex flex-col items-center justify-center gap-1 py-3 text-xs font-semibold transition ${
-                  isActive ? 'text-emerald-700' : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <Icon />
-                <span>{tab.label}</span>
-              </button>
-            )
-          })}
-        </nav>
-      </div>
-    </div>
+      <ModalHost
+        modal={modal}
+        inventory={inventory}
+        reminders={reminders}
+        scanItems={scanItems}
+        onClose={() => setModal({ id: 'none' })}
+        onSubmitHomeReminder={submitHomeReminder}
+        onConfirmHomeRemove={confirmHomeRemove}
+        onSaveScanItem={saveScanItem}
+        onConfirmScanRemove={confirmScanRemove}
+        onSaveReminder={saveReminder}
+        onConfirmReminderCancel={confirmReminderCancel}
+      />
+    </>
   )
 }
 

@@ -1,1 +1,4 @@
-ADD HERE
+Staged content profile for app configuration:
+- src/content/stagedContentProfile.json
+
+Use this file as the source of truth for seeded ingredients and recipes.

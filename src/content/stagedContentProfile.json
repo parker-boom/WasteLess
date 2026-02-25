@@ -1,0 +1,130 @@
+{
+  "ingredients": [
+    {
+      "id": 1,
+      "name": "Chicken Breast",
+      "category": "Protein",
+      "caloriesPerUnit": 165,
+      "expirationDate": "2026-03-09T14:30:00Z"
+    },
+    {
+      "id": 2,
+      "name": "Rice",
+      "category": "Grain",
+      "caloriesPerUnit": 206,
+      "expirationDate": "2026-06-20T14:30:00Z"
+    },
+    {
+      "id": 3,
+      "name": "Broccoli",
+      "category": "Vegetable",
+      "caloriesPerUnit": 55,
+      "expirationDate": "2026-03-10T14:30:00Z"
+    },
+    {
+      "id": 4,
+      "name": "Garlic",
+      "category": "Vegetable",
+      "caloriesPerUnit": 4,
+      "expirationDate": "2026-04-15T14:30:00Z"
+    },
+    {
+      "id": 5,
+      "name": "Soy Sauce",
+      "category": "Condiment",
+      "caloriesPerUnit": 10,
+      "expirationDate": "2027-03-15T14:30:00Z"
+    }
+  ],
+  "demoIngredientToAddLive": {
+    "id": 6,
+    "name": "Lemon",
+    "category": "Fruit",
+    "caloriesPerUnit": 17,
+    "expirationDate": "2026-03-20T14:30:00Z"
+  },
+  "recipes": [
+    {
+      "id": 1,
+      "name": "Garlic Soy Chicken Bowl",
+      "description": "A savory chicken bowl with rice and roasted vegetables.",
+      "calories": 520,
+      "prepTimeMinutes": 15,
+      "cookTimeMinutes": 25,
+      "totalTimeMinutes": 40,
+      "ingredients": [
+        "Chicken Breast",
+        "Rice",
+        "Broccoli",
+        "Garlic",
+        "Soy Sauce",
+        "Olive Oil",
+        "Salt",
+        "Pepper"
+      ],
+      "instructions": [
+        "Cook rice according to package instructions.",
+        "Season chicken with salt and pepper.",
+        "Saute garlic in olive oil.",
+        "Add chicken and cook until golden brown.",
+        "Add soy sauce and simmer for 3 minutes.",
+        "Steam or roast broccoli.",
+        "Serve chicken and broccoli over rice."
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Lemon Garlic Chicken",
+      "description": "Bright and flavorful chicken with fresh lemon and garlic.",
+      "calories": 430,
+      "prepTimeMinutes": 10,
+      "cookTimeMinutes": 25,
+      "totalTimeMinutes": 35,
+      "ingredients": [
+        "Chicken Breast",
+        "Garlic",
+        "Lemon",
+        "Olive Oil",
+        "Salt",
+        "Pepper",
+        "Parsley"
+      ],
+      "instructions": [
+        "Preheat oven to 400 F.",
+        "Mix olive oil, minced garlic, and lemon juice.",
+        "Coat chicken in mixture.",
+        "Season with salt and pepper.",
+        "Bake for 20-25 minutes.",
+        "Garnish with parsley before serving."
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Vegetable Fried Rice",
+      "description": "A quick stir-fried rice dish packed with vegetables.",
+      "calories": 480,
+      "prepTimeMinutes": 15,
+      "cookTimeMinutes": 15,
+      "totalTimeMinutes": 30,
+      "ingredients": [
+        "Rice",
+        "Broccoli",
+        "Garlic",
+        "Soy Sauce",
+        "Eggs",
+        "Carrots",
+        "Green Onions",
+        "Sesame Oil"
+      ],
+      "instructions": [
+        "Heat sesame oil in a large pan.",
+        "Scramble eggs and set aside.",
+        "Saute garlic, broccoli, and carrots.",
+        "Add cooked rice and stir-fry.",
+        "Mix in soy sauce.",
+        "Add scrambled eggs back in.",
+        "Top with green onions and serve."
+      ]
+    }
+  ]
+}
