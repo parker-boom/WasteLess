@@ -70,8 +70,10 @@ export function HomePage({
                   type="button"
                   className={`reminder-square ${reminder ? 'is-set' : ''}`}
                   onClick={() => onRequestSetReminder(item.id)}
-                  title="Set reminder"
-                  aria-label={`Set reminder for ${item.name}`}
+                  title={reminder ? 'Edit reminder' : 'Set reminder'}
+                  aria-label={`${
+                    reminder ? 'Edit reminder for' : 'Set reminder for'
+                  } ${item.name}`}
                 >
                   <BellGlyph />
                 </button>

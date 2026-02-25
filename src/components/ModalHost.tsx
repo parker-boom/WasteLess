@@ -162,7 +162,7 @@ function HomeSetReminderModal({
   }
 
   return (
-    <ModalLayout title="Set Reminder" onClose={onClose}>
+    <ModalLayout title={existing ? 'Edit Reminder' : 'Set Reminder'} onClose={onClose}>
       <p className="modal-highlight">
         {item.name}, x{item.quantity}
       </p>
@@ -194,7 +194,7 @@ function HomeSetReminderModal({
         className="primary-button full-width"
         onClick={() => onSubmitHomeReminder(item.id, days, time)}
       >
-        confirm
+        {existing ? 'save changes' : 'confirm'}
       </button>
     </ModalLayout>
   )
