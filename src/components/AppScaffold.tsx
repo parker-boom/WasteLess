@@ -20,17 +20,6 @@ export function AppScaffold({
     <div className="app-backdrop">
       <div className="phone-shell">
         <header className="app-header">
-          <button
-            type="button"
-            className="menu-button"
-            aria-label="Menu (visual only)"
-            aria-disabled="true"
-          >
-            <span />
-            <span />
-            <span />
-          </button>
-
           <div className="app-brand">
             <img src="/LogoFinalWL.png" alt="WasteLess logo" className="app-logo" />
             <p className="app-title">WasteLess</p>

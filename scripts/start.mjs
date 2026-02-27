@@ -89,7 +89,7 @@ async function main() {
 
   console.log('\nStep 3/3: Starting the dev server...\n')
   await runNpmStep(
-    ['run', 'dev'],
+    ['run', 'dev', '--', '--open'],
     'Dev server',
     'Ensure port 5173 is free or change the port, then rerun `npm start`.',
     { allowInterrupt: true },
