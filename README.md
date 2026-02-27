@@ -2,17 +2,28 @@
 
 Website that simulates a phone app for the CSC484 group project.
 
-`npm start` checks Node version, installs dependencies, builds the app, and starts the dev server.
+## Running the App
 
-## Run
+- You need to have Node.js & Git installed
+- Clone the repo using the link
+- Run “npm start” in root
+  > Application will automatically open in your browser.
+  > Feel free to use the reset button in the bottom right to reset to demo data
 
-```bash
-npm start
-```
+## Team Contribution
 
-## Build
+Drew: Did the entire Figma based on revisions
 
-```bash
-npm run build
-npm run preview
-```
+- https://www.figma.com/design/atmlFAEDMRgAWtBjvK0JHl/ux-ui-csc?node-id=0-1&t=G2A7OKHnUWKX9p2e-1
+- /FigmaScreenshots
+
+Talia: Wrote the content, found the pictures, and planned out testing prototype
+
+- /src/content/stagedContentProfile.json
+
+Joanna: Defined branding, designed logo, color palette, fonts
+
+- /docs/Branding.txt
+- /docs/Branding/...
+
+Parker: Wrote the code with Codex & published
