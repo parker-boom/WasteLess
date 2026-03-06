@@ -145,6 +145,7 @@ function HomeSetReminderModal({
   inventoryItemId,
   onClose,
   onSubmitHomeReminder,
+  onConfirmReminderCancel,
 }: RenderContext & { inventoryItemId: number }) {
   const item = inventory.find((entry) => entry.id === inventoryItemId)
   const existing = reminders.find((entry) => entry.inventoryItemId === inventoryItemId)
@@ -196,6 +197,16 @@ function HomeSetReminderModal({
       >
         {existing ? 'save changes' : 'confirm'}
       </button>
+
+      {existing && (
+        <button
+          type="button"
+          className="danger-button full-width"
+          onClick={() => onConfirmReminderCancel(existing.id)}
+        >
+          cancel reminder
+        </button>
+      )}
     </ModalLayout>
   )
 }
