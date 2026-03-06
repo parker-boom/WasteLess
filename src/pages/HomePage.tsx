@@ -114,6 +114,7 @@ function ExpiryBadge({ label }: { label: string }) {
 
   return (
     <div className="inventory-expiry-badge">
+      <span className="inventory-expiry-label">Expires In</span>
       <span className="inventory-expiry-count">{count}</span>
       <span className="inventory-expiry-unit">{unit}</span>
     </div>

@@ -225,18 +225,31 @@ select {
   padding: 6px 4px;
   display: grid;
   justify-items: center;
-  gap: 8px;
+  gap: 0;
+}
+
+.inventory-expiry-label {
+  display: inline-block;
+  min-width: 100%;
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--brand-bg-700);
 }
 
 .inventory-expiry-count {
+  
   display: inline-block;
   min-width: 2ch;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 2.55rem;
-  font-weight: 700;
-  line-height: 0.82;
+  font-weight: 350;
+  line-height: 1;
   color: var(--brand-bg-800);
   text-align: center;
+  margin-top: 0;
 }
 
 .inventory-expiry-unit {
