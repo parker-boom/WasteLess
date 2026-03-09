@@ -38,7 +38,7 @@ export function createInitialReminders(inventory: InventoryItem[]): Reminder[] {
     id: index + 1,
     inventoryItemId: item.id,
     itemName: item.name,
-    remindInDays: Math.max(daysUntil(item.expirationDate) - 1, 0),
+    remindInDays: daysUntil(item.expirationDate) >= 1 ? 1 : 0,
     time: index === 0 ? '09:00' : '10:00',
   }))
 }
@@ -59,7 +59,7 @@ export function createMockScannedItems(): ScanDraftItem[] {
       category: demo.category,
       caloriesPerUnit: demo.caloriesPerUnit,
       quantity: 2,
-      expirationInDays: 5,
+      expirationDate: dateValueFromNow(5),
     },
     {
       id: 1002,
@@ -67,7 +67,7 @@ export function createMockScannedItems(): ScanDraftItem[] {
       category: (broccoli ?? fallback).category,
       caloriesPerUnit: (broccoli ?? fallback).caloriesPerUnit,
       quantity: 1,
-      expirationInDays: 4,
+      expirationDate: dateValueFromNow(4),
     },
     {
       id: 1003,
@@ -75,7 +75,7 @@ export function createMockScannedItems(): ScanDraftItem[] {
       category: (chicken ?? fallback).category,
       caloriesPerUnit: (chicken ?? fallback).caloriesPerUnit,
       quantity: 1,
-      expirationInDays: 7,
+      expirationDate: dateValueFromNow(7),
     },
   ]
 }
@@ -92,4 +92,12 @@ export function recipeImageByName(recipeName: string): string {
 
 export function nextId<T extends { id: number }>(items: T[]): number {
   return items.reduce((maxId, item) => Math.max(maxId, item.id), 0) + 1
+}
+
+function dateValueFromNow(days: number): string {
+  const date = new Date()
+  date.setDate(date.getDate() + days)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+    date.getDate(),
+  ).padStart(2, '0')}`
 }

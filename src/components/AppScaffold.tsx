@@ -53,10 +53,10 @@ function BottomNav({ activeTab, onNavigate }: BottomNavProps) {
         icon={<RecipeIcon />}
       />
       <NavButton
-        label="Home"
+        label="Inventory"
         isActive={activeTab === 'home'}
         onClick={() => onNavigate('home')}
-        icon={<HomeIcon />}
+        icon={<InventoryIcon />}
       />
       <NavButton
         label="Reminders"
@@ -99,12 +99,12 @@ function RecipeIcon() {
   )
 }
 
-function HomeIcon() {
+function InventoryIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path
         fill="currentColor"
-        d="M12 3.25a1 1 0 0 1 .65.24l7 5.98a1 1 0 0 1-.65 1.76h-.75v7a1.75 1.75 0 0 1-1.75 1.75h-3.5a1 1 0 0 1-1-1v-4h-2v4a1 1 0 0 1-1 1H5.5a1.75 1.75 0 0 1-1.75-1.75v-7H3a1 1 0 0 1-.65-1.76l7-5.98a1 1 0 0 1 .65-.24z"
+        d="M4.75 5h14.5A1.75 1.75 0 0 1 21 6.75v10.5A1.75 1.75 0 0 1 19.25 19H4.75A1.75 1.75 0 0 1 3 17.25V6.75A1.75 1.75 0 0 1 4.75 5zm0 1.5a.25.25 0 0 0-.25.25v2.1h15v-2.1a.25.25 0 0 0-.25-.25H4.75zm-.25 3.85v6.9c0 .14.11.25.25.25h14.5a.25.25 0 0 0 .25-.25v-6.9h-15z"
       />
     </svg>
   )

@@ -61,7 +61,6 @@ export function AddItemsScanPage({ onBack, onDone }: AddItemsScanPageProps) {
   return (
     <section className="screen scan-screen">
       <header className="screen-header">
-        <p className="screen-overline">Add Items</p>
         <h1 className="screen-title">Capture barcode(s)</h1>
       </header>
 
@@ -92,10 +91,10 @@ export function AddItemsScanPage({ onBack, onDone }: AddItemsScanPageProps) {
 
       <div className="split-actions">
         <button type="button" className="ghost-button" onClick={onBack}>
-          back
+          Back
         </button>
         <button type="button" className="primary-button" onClick={onDone}>
-          done
+          Done
         </button>
       </div>
     </section>

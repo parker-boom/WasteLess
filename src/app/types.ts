@@ -58,7 +58,7 @@ export type ScanDraftItem = {
   category: string
   caloriesPerUnit: number
   quantity: number
-  expirationInDays: number
+  expirationDate: string
 }
 
 export type ModalState =

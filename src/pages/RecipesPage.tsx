@@ -13,7 +13,6 @@ export function RecipesPage({ recipes, inventory, onOpenRecipe }: RecipesPagePro
   return (
     <section className="screen">
       <header className="screen-header">
-        <p className="screen-overline">Kitchen</p>
         <h1 className="screen-title">Suggested recipes</h1>
       </header>
 
@@ -44,7 +43,7 @@ export function RecipesPage({ recipes, inventory, onOpenRecipe }: RecipesPagePro
               </div>
 
               <p className="inventory-meta">
-                Prep {recipe.prepTimeMinutes} min • Cook {recipe.cookTimeMinutes} min
+                Prep {recipe.prepTimeMinutes} min | Cook {recipe.cookTimeMinutes} min
               </p>
 
               <div className="chip-row">
@@ -70,3 +69,4 @@ export function RecipesPage({ recipes, inventory, onOpenRecipe }: RecipesPagePro
     </section>
   )
 }
+

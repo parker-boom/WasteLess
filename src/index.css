@@ -13,6 +13,15 @@
   --brand-danger: #860d0d;
   --font-display: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
   --font-body: Manrope, 'Segoe UI', Tahoma, sans-serif;
+  --button-primary-border: rgba(43, 0, 0, 0.2);
+  --button-primary-text: var(--brand-cream-soft);
+  --button-primary-bg: linear-gradient(145deg, var(--brand-bg-700), var(--brand-bg-900));
+  --button-secondary-border: rgba(43, 0, 0, 0.3);
+  --button-secondary-text: var(--brand-bg-900);
+  --button-secondary-bg: #fffaf0;
+  --button-danger-border: rgba(134, 13, 13, 0.4);
+  --button-danger-text: var(--brand-bg-700);
+  --button-danger-bg: #fff4f4;
 }
 
 *,
@@ -205,9 +214,10 @@ select {
 
 .inventory-name {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 1.85rem;
-  line-height: 1;
+  font-family: var(--font-body);
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.15;
   color: var(--brand-bg-900);
 }
 
@@ -240,7 +250,6 @@ select {
 }
 
 .inventory-expiry-count {
-  
   display: inline-block;
   min-width: 2ch;
   font-family: var(--font-body);
@@ -271,9 +280,9 @@ select {
   width: 25px;
   height: 25px;
   border-radius: 999px;
-  border: 1px solid rgba(43, 0, 0, 0.32);
-  background: white;
-  color: var(--brand-bg-700);
+  border: 1px solid var(--button-danger-border);
+  background: var(--button-danger-bg);
+  color: var(--button-danger-text);
   display: grid;
   place-items: center;
   font-size: 1.22rem;
@@ -284,7 +293,7 @@ select {
 }
 
 .inventory-remove-fab:hover {
-  background: #fff2f2;
+  background: #ffeaea;
 }
 
 .inventory-reminder {
@@ -360,9 +369,9 @@ select {
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  border: 1px solid rgba(43, 0, 0, 0.32);
-  background: white;
-  color: var(--brand-bg-900);
+  border: 1px solid var(--button-secondary-border);
+  background: var(--button-secondary-bg);
+  color: var(--button-secondary-text);
   display: grid;
   place-items: center;
   font-size: 0.95rem;
@@ -382,8 +391,9 @@ select {
 }
 
 .icon-action.danger .icon-bubble {
-  border-color: rgba(134, 13, 13, 0.4);
-  color: var(--brand-bg-700);
+  border-color: var(--button-danger-border);
+  color: var(--button-danger-text);
+  background: var(--button-danger-bg);
 }
 
 .split-actions {
@@ -397,8 +407,10 @@ select {
   height: 40px;
   border-radius: 11px;
   border: 1px solid transparent;
+  font-family: var(--font-body);
   font-size: 1rem;
   font-weight: 700;
+  letter-spacing: 0.01em;
   cursor: pointer;
   transition:
     transform 120ms ease,
@@ -408,24 +420,24 @@ select {
 
 .primary-button {
   flex: 1;
-  border-color: rgba(43, 0, 0, 0.2);
-  color: var(--brand-cream-soft);
-  background: linear-gradient(145deg, var(--brand-bg-700), var(--brand-bg-900));
+  border-color: var(--button-primary-border);
+  color: var(--button-primary-text);
+  background: var(--button-primary-bg);
   box-shadow: 0 7px 15px rgba(43, 0, 0, 0.2);
 }
 
 .ghost-button {
   flex: 1;
-  border-color: rgba(43, 0, 0, 0.3);
-  color: var(--brand-bg-900);
-  background: #fffaf0;
+  border-color: var(--button-secondary-border);
+  color: var(--button-secondary-text);
+  background: var(--button-secondary-bg);
 }
 
 .danger-button {
   flex: 1;
-  border-color: rgba(134, 13, 13, 0.4);
-  color: var(--brand-bg-700);
-  background: #fff4f4;
+  border-color: var(--button-danger-border);
+  color: var(--button-danger-text);
+  background: var(--button-danger-bg);
 }
 
 .primary-button:hover,
@@ -509,10 +521,11 @@ select {
 
 .recipe-name {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 1.8rem;
+  font-family: var(--font-body);
+  font-size: 1.18rem;
+  font-weight: 700;
   color: var(--brand-bg-900);
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .recipe-calories {
@@ -594,8 +607,9 @@ select {
 
 .stat-value {
   margin: 4px 0 0;
-  font-family: var(--font-display);
-  font-size: 1.45rem;
+  font-family: var(--font-body);
+  font-size: 1.24rem;
+  font-weight: 700;
   color: var(--brand-bg-800);
   line-height: 1;
 }
@@ -609,8 +623,9 @@ select {
 
 .detail-section h2 {
   margin: 0 0 10px;
-  font-family: var(--font-display);
-  font-size: 1.7rem;
+  font-family: var(--font-body);
+  font-size: 1.2rem;
+  font-weight: 700;
   color: var(--brand-bg-900);
 }
 
@@ -756,9 +771,9 @@ select {
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  border: 1px solid rgba(43, 0, 0, 0.2);
-  background: #fff4e4;
-  color: var(--brand-bg-900);
+  border: 1px solid var(--button-secondary-border);
+  background: var(--button-secondary-bg);
+  color: var(--button-secondary-text);
   font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;

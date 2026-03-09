@@ -17,7 +17,7 @@ export function RecipeDetailPage({
   return (
     <section className="screen">
       <button type="button" className="text-link" onClick={onBack}>
-        ← back to recipes
+        Back to recipes
       </button>
 
       <img src={recipeImageByName(recipe.name)} alt={recipe.name} className="detail-image" />
@@ -71,3 +71,4 @@ export function RecipeDetailPage({
     </section>
   )
 }
+

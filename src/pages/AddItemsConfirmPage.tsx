@@ -1,4 +1,5 @@
 import type { ScanDraftItem } from '../app/types'
+import { expiryLabel } from '../app/date'
 
 type AddItemsConfirmPageProps = {
   items: ScanDraftItem[]
@@ -18,7 +19,6 @@ export function AddItemsConfirmPage({
   return (
     <section className="screen scan-screen">
       <header className="screen-header">
-        <p className="screen-overline">Add Items</p>
         <h1 className="screen-title">Scanned items</h1>
         <p className="inventory-meta">Confirm details before adding to inventory.</p>
       </header>
@@ -33,12 +33,12 @@ export function AddItemsConfirmPage({
         {items.map((item) => (
           <article key={item.id} className="inventory-card scan-card">
             <p className="scan-quantity">x{item.quantity}</p>
-            <div className="inventory-expiry">{expiryLabelFromDays(item.expirationInDays)}</div>
+            <div className="inventory-expiry">{expiryLabel(item.expirationDate)}</div>
 
             <div className="inventory-body">
               <p className="inventory-name">{item.name}</p>
               <p className="inventory-meta">
-                {item.category} • {item.caloriesPerUnit} cal / unit
+                {item.category} | {item.caloriesPerUnit} cal / unit
               </p>
             </div>
 
@@ -68,7 +68,7 @@ export function AddItemsConfirmPage({
 
       <div className="split-actions">
         <button type="button" className="ghost-button" onClick={onBack}>
-          back
+          Back
         </button>
         <button
           type="button"
@@ -76,26 +76,11 @@ export function AddItemsConfirmPage({
           onClick={onConfirm}
           disabled={items.length === 0}
         >
-          confirm
+          Confirm
         </button>
       </div>
     </section>
   )
-}
-
-function expiryLabelFromDays(days: number): string {
-  if (days <= 0) {
-    return 'Today'
-  }
-  if (days === 1) {
-    return 'Tomorrow'
-  }
-  if (days < 7) {
-    return `${days} Days`
-  }
-
-  const weeks = Math.ceil(days / 7)
-  return weeks === 1 ? '1 Week' : `${weeks} Weeks`
 }
 
 function PencilGlyph() {
@@ -108,3 +93,4 @@ function PencilGlyph() {
     </svg>
   )
 }
+

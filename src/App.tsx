@@ -1,5 +1,5 @@
 import { type ReactNode, useMemo, useState } from 'react'
-import { addDaysIso } from './app/date'
+import { daysUntil } from './app/date'
 import {
   createInitialInventory,
   createInitialReminders,
@@ -77,6 +77,8 @@ function App() {
       return
     }
 
+    const boundedRemindInDays = clampReminderLeadDays(item.expirationDate, remindInDays)
+
     setReminders((previous) => {
       const existingReminder = previous.find(
         (entry) => entry.inventoryItemId === inventoryItemId,
@@ -85,7 +87,7 @@ function App() {
       if (existingReminder) {
         return previous.map((entry) =>
           entry.id === existingReminder.id
-            ? { ...entry, remindInDays, time, itemName: item.name }
+            ? { ...entry, remindInDays: boundedRemindInDays, time, itemName: item.name }
             : entry,
         )
       }
@@ -96,7 +98,7 @@ function App() {
           id: nextId(previous),
           inventoryItemId,
           itemName: item.name,
-          remindInDays,
+          remindInDays: boundedRemindInDays,
           time,
         },
       ]
@@ -105,29 +107,50 @@ function App() {
     setModal({
       id: 'homeReminderSet',
       itemName: item.name,
-      remindInDays,
+      remindInDays: boundedRemindInDays,
       time,
     })
   }
 
-  const confirmHomeRemove = (inventoryItemId: number) => {
+  const confirmHomeRemove = (inventoryItemId: number, removeQuantity: number) => {
     const item = inventory.find((entry) => entry.id === inventoryItemId)
-    setInventory((previous) => previous.filter((entry) => entry.id !== inventoryItemId))
-    setReminders((previous) =>
-      previous.filter((entry) => entry.inventoryItemId !== inventoryItemId),
-    )
 
     if (!item) {
       setModal({ id: 'none' })
       return
     }
 
-    setModal({ id: 'homeItemRemoved', itemName: item.name })
+    const boundedRemoveQuantity = Math.max(1, Math.min(removeQuantity, item.quantity))
+    const remainingQuantity = item.quantity - boundedRemoveQuantity
+
+    setInventory((previous) =>
+      previous.flatMap((entry) => {
+        if (entry.id !== inventoryItemId) {
+          return [entry]
+        }
+
+        if (remainingQuantity <= 0) {
+          return []
+        }
+
+        return [{ ...entry, quantity: remainingQuantity }]
+      }),
+    )
+
+    if (remainingQuantity <= 0) {
+      setReminders((previous) =>
+        previous.filter((entry) => entry.inventoryItemId !== inventoryItemId),
+      )
+      setModal({ id: 'homeItemRemoved', itemName: item.name })
+      return
+    }
+
+    setModal({ id: 'none' })
   }
 
   const saveScanItem = (
     scanItemId: number,
-    updates: Pick<ScanDraftItem, 'name' | 'quantity' | 'expirationInDays'>,
+    updates: Pick<ScanDraftItem, 'name' | 'quantity' | 'expirationDate'>,
   ) => {
     setScanItems((previous) =>
       previous.map((entry) =>
@@ -136,7 +159,7 @@ function App() {
               ...entry,
               name: updates.name,
               quantity: updates.quantity,
-              expirationInDays: updates.expirationInDays,
+              expirationDate: updates.expirationDate,
             }
           : entry,
       ),
@@ -161,11 +184,19 @@ function App() {
       return
     }
 
+    const boundedRemindInDays = clampReminderLeadDays(item.expirationDate, remindInDays)
+
     setReminders((previous) => {
       if (typeof reminderId === 'number') {
         return previous.map((entry) =>
           entry.id === reminderId
-            ? { ...entry, inventoryItemId, itemName: item.name, remindInDays, time }
+            ? {
+                ...entry,
+                inventoryItemId,
+                itemName: item.name,
+                remindInDays: boundedRemindInDays,
+                time,
+              }
             : entry,
         )
       }
@@ -176,7 +207,7 @@ function App() {
           id: nextId(previous),
           inventoryItemId,
           itemName: item.name,
-          remindInDays,
+          remindInDays: boundedRemindInDays,
           time,
         },
       ]
@@ -215,7 +246,7 @@ function App() {
         name: item.name,
         category: item.category,
         caloriesPerUnit: item.caloriesPerUnit,
-        expirationDate: addDaysIso(item.expirationInDays),
+        expirationDate: item.expirationDate,
         quantity: item.quantity,
       }))
 
@@ -276,6 +307,7 @@ function App() {
   } else if (screen.id === 'reminders') {
     content = (
       <RemindersPage
+        inventory={inventory}
         reminders={reminders}
         onRequestNewReminder={() => setModal({ id: 'reminderEditor' })}
         onRequestEditReminder={(reminderId) =>
@@ -341,6 +373,11 @@ function App() {
 }
 
 export default App
+
+function clampReminderLeadDays(expirationDate: string, value: number): number {
+  const maxLeadDays = Math.max(0, Math.min(daysUntil(expirationDate), 30))
+  return Math.max(0, Math.min(value, maxLeadDays))
+}
 
 function RefreshIcon() {
   return (

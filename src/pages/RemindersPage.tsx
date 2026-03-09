@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
-import { toMeridiem } from '../app/date'
-import type { Reminder } from '../app/types'
+import { beforeExpirationLabel, daysUntil, toMeridiem } from '../app/date'
+import type { InventoryItem, Reminder } from '../app/types'
 
 type RemindersPageProps = {
+  inventory: InventoryItem[]
   reminders: Reminder[]
   onRequestNewReminder: () => void
   onRequestEditReminder: (reminderId: number) => void
@@ -10,16 +11,39 @@ type RemindersPageProps = {
 }
 
 export function RemindersPage({
+  inventory,
   reminders,
   onRequestNewReminder,
   onRequestEditReminder,
   onRequestCancelReminder,
 }: RemindersPageProps) {
   const [visibleCount, setVisibleCount] = useState(4)
+  const inventoryById = useMemo(
+    () => new Map(inventory.map((item) => [item.id, item])),
+    [inventory],
+  )
 
   const orderedReminders = useMemo(
-    () => [...reminders].sort((a, b) => a.remindInDays - b.remindInDays),
-    [reminders],
+    () =>
+      [...reminders].sort((a, b) => {
+        const aItem = inventoryById.get(a.inventoryItemId)
+        const bItem = inventoryById.get(b.inventoryItemId)
+        const aTriggerDays =
+          (aItem ? daysUntil(aItem.expirationDate) : Number.MAX_SAFE_INTEGER) -
+          a.remindInDays
+        const bTriggerDays =
+          (bItem ? daysUntil(bItem.expirationDate) : Number.MAX_SAFE_INTEGER) -
+          b.remindInDays
+
+        if (aTriggerDays !== bTriggerDays) {
+          return aTriggerDays - bTriggerDays
+        }
+        if (a.time !== b.time) {
+          return a.time.localeCompare(b.time)
+        }
+        return a.itemName.localeCompare(b.itemName)
+      }),
+    [inventoryById, reminders],
   )
 
   const visibleReminders = orderedReminders.slice(0, visibleCount)
@@ -28,7 +52,6 @@ export function RemindersPage({
   return (
     <section className="screen">
       <header className="screen-header">
-        <p className="screen-overline">Planner</p>
         <h1 className="screen-title">Current reminders</h1>
       </header>
 
@@ -38,7 +61,7 @@ export function RemindersPage({
         onClick={onRequestNewReminder}
       >
         <PlusGlyph />
-        <span>set new</span>
+        <span>Set reminder</span>
       </button>
 
       <div className="list-stack">
@@ -53,8 +76,7 @@ export function RemindersPage({
             <div className="reminder-main">
               <p className="inventory-name">{reminder.itemName}</p>
               <p className="inventory-meta">
-                in {reminder.remindInDays} day{reminder.remindInDays === 1 ? '' : 's'} at{' '}
-                {toMeridiem(reminder.time)}
+                {beforeExpirationLabel(reminder.remindInDays)} at {toMeridiem(reminder.time)}
               </p>
             </div>
 
@@ -89,7 +111,7 @@ export function RemindersPage({
         onClick={() => setVisibleCount((count) => count + 4)}
         disabled={!hasMore}
       >
-        load more
+        Load more
       </button>
     </section>
   )

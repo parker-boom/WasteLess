@@ -33,14 +33,14 @@ export function expiryLabel(isoDate: string): string {
   return weeks === 1 ? '1 Week' : `${weeks} Weeks`
 }
 
-export function relativeLabelFromDays(days: number): string {
+export function beforeExpirationLabel(days: number): string {
   if (days <= 0) {
-    return 'today'
+    return 'on expiration day'
   }
   if (days === 1) {
-    return '1 day from now'
+    return '1 day before expiration'
   }
-  return `${days} days from now`
+  return `${days} days before expiration`
 }
 
 export function toMeridiem(time24: string): string {

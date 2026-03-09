@@ -1,5 +1,5 @@
-import { useMemo, useState, type ReactNode } from 'react'
-import { relativeLabelFromDays, toMeridiem } from '../app/date'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { beforeExpirationLabel, daysUntil, toMeridiem } from '../app/date'
 import type {
   InventoryItem,
   ModalState,
@@ -14,10 +14,10 @@ type ModalHostProps = {
   scanItems: ScanDraftItem[]
   onClose: () => void
   onSubmitHomeReminder: (itemId: number, remindInDays: number, time: string) => void
-  onConfirmHomeRemove: (itemId: number) => void
+  onConfirmHomeRemove: (itemId: number, removeQuantity: number) => void
   onSaveScanItem: (
     scanItemId: number,
-    updates: Pick<ScanDraftItem, 'name' | 'quantity' | 'expirationInDays'>,
+    updates: Pick<ScanDraftItem, 'name' | 'quantity' | 'expirationDate'>,
   ) => void
   onConfirmScanRemove: (scanItemId: number) => void
   onSaveReminder: (
@@ -29,8 +29,8 @@ type ModalHostProps = {
   onConfirmReminderCancel: (reminderId: number) => void
 }
 
-const dayOptions = [0, 1, 2, 3, 5, 7, 14]
-const timeOptions = ['08:00', '09:00', '10:00', '12:00', '15:00', '17:00', '20:00']
+const reminderDayPresets = [0, 1, 2, 3, 5, 7, 10, 14, 21, 30]
+const timeOptions = createHourlyTimeOptions(7, 21)
 
 export function ModalHost({
   modal,
@@ -81,10 +81,10 @@ function renderModal(context: RenderContext) {
     case 'homeReminderSet':
       return (
         <SuccessModal
-          title="Reminder set"
+          title="Reminder Set"
           lines={[
             `${modal.itemName}`,
-            `for ${relativeLabelFromDays(modal.remindInDays)}`,
+            `${beforeExpirationLabel(modal.remindInDays)}`,
             `${toMeridiem(modal.time)}`,
           ]}
           onClose={context.onClose}
@@ -95,7 +95,7 @@ function renderModal(context: RenderContext) {
     case 'homeItemRemoved':
       return (
         <SuccessModal
-          title="Removed from grocery list"
+          title="Removed from Inventory"
           lines={[modal.itemName]}
           onClose={context.onClose}
         />
@@ -111,7 +111,7 @@ function renderModal(context: RenderContext) {
     case 'reminderRemoved':
       return (
         <SuccessModal
-          title="Reminder removed"
+          title="Reminder Removed"
           lines={[modal.itemName]}
           onClose={context.onClose}
         />
@@ -131,7 +131,7 @@ function ModalLayout({ title, onClose, children }: ModalLayoutProps) {
   return (
     <div className="modal-layout">
       <button type="button" className="modal-close" onClick={onClose} aria-label="Close modal">
-        ×
+        X
       </button>
       <h2>{title}</h2>
       <div className="modal-content">{children}</div>
@@ -149,13 +149,19 @@ function HomeSetReminderModal({
 }: RenderContext & { inventoryItemId: number }) {
   const item = inventory.find((entry) => entry.id === inventoryItemId)
   const existing = reminders.find((entry) => entry.inventoryItemId === inventoryItemId)
-  const [days, setDays] = useState(existing?.remindInDays ?? 2)
+  const maxReminderDays = item ? Math.max(daysUntil(item.expirationDate), 0) : 0
+  const reminderDayOptions = buildReminderDayOptions(maxReminderDays)
+  const [days, setDays] = useState(existing?.remindInDays ?? 1)
   const [time, setTime] = useState(existing?.time ?? '10:00')
+
+  useEffect(() => {
+    setDays((value) => clampReminderDays(value, maxReminderDays))
+  }, [maxReminderDays])
 
   if (!item) {
     return (
       <SuccessModal
-        title="Item not found"
+        title="Item Not Found"
         lines={['This inventory item no longer exists.']}
         onClose={onClose}
       />
@@ -169,11 +175,11 @@ function HomeSetReminderModal({
       </p>
 
       <label className="field-label">
-        Remind me in:
+        Remind me:
         <select value={days} onChange={(event) => setDays(Number(event.target.value))}>
-          {dayOptions.map((option) => (
+          {reminderDayOptions.map((option) => (
             <option key={option} value={option}>
-              {option === 0 ? 'Today' : `${option} Day${option === 1 ? '' : 's'}`}
+              {reminderOptionLabel(option)}
             </option>
           ))}
         </select>
@@ -190,21 +196,30 @@ function HomeSetReminderModal({
         </select>
       </label>
 
-      <button
-        type="button"
-        className="primary-button full-width"
-        onClick={() => onSubmitHomeReminder(item.id, days, time)}
-      >
-        {existing ? 'save changes' : 'confirm'}
-      </button>
-
-      {existing && (
+      {existing ? (
+        <div className="split-actions">
+          <button
+            type="button"
+            className="ghost-button"
+            onClick={() => onConfirmReminderCancel(existing.id)}
+          >
+            Cancel Reminder
+          </button>
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() => onSubmitHomeReminder(item.id, days, time)}
+          >
+            Save
+          </button>
+        </div>
+      ) : (
         <button
           type="button"
-          className="danger-button full-width"
-          onClick={() => onConfirmReminderCancel(existing.id)}
+          className="primary-button full-width"
+          onClick={() => onSubmitHomeReminder(item.id, days, time)}
         >
-          cancel reminder
+          Save
         </button>
       )}
     </ModalLayout>
@@ -218,11 +233,12 @@ function HomeRemoveItemModal({
   onConfirmHomeRemove,
 }: RenderContext & { inventoryItemId: number }) {
   const item = inventory.find((entry) => entry.id === inventoryItemId)
+  const [removeQuantity, setRemoveQuantity] = useState(1)
 
   if (!item) {
     return (
       <SuccessModal
-        title="Item not found"
+        title="Item Not Found"
         lines={['This inventory item no longer exists.']}
         onClose={onClose}
       />
@@ -230,22 +246,36 @@ function HomeRemoveItemModal({
   }
 
   return (
-    <ModalLayout title="Remove item?" onClose={onClose}>
-      <p className="modal-highlight">
-        {item.name}, x{item.quantity}
-      </p>
-      <p className="inventory-meta">Are you sure you want to remove this from the grocery list?</p>
+    <ModalLayout title={`Remove ${item.name}`} onClose={onClose}>
+      <p className="modal-highlight">{item.quantity} total.</p>
+      <p className="inventory-meta">How many do you want to remove?</p>
+      <div className="field-label">
+        <select
+          aria-label="Amount to remove"
+          value={removeQuantity}
+          onChange={(event) => setRemoveQuantity(Number(event.target.value))}
+        >
+          {Array.from({ length: item.quantity }, (_, index) => {
+            const quantity = index + 1
+            return (
+              <option key={quantity} value={quantity}>
+                {quantity}
+              </option>
+            )
+          })}
+        </select>
+      </div>
 
       <div className="split-actions">
+        <button type="button" className="ghost-button" onClick={onClose}>
+          Back
+        </button>
         <button
           type="button"
-          className="danger-button"
-          onClick={() => onConfirmHomeRemove(item.id)}
+          className="primary-button"
+          onClick={() => onConfirmHomeRemove(item.id, removeQuantity)}
         >
-          yes, remove
-        </button>
-        <button type="button" className="ghost-button" onClick={onClose}>
-          no, back
+          Remove {removeQuantity}
         </button>
       </div>
     </ModalLayout>
@@ -262,12 +292,14 @@ function ScanEditModal({
 
   const [name, setName] = useState(item?.name ?? '')
   const [quantity, setQuantity] = useState(item?.quantity ?? 1)
-  const [expirationInDays, setExpirationInDays] = useState(item?.expirationInDays ?? 7)
+  const [expirationDate, setExpirationDate] = useState(() =>
+    toDateInputValue(item?.expirationDate),
+  )
 
   if (!item) {
     return (
       <SuccessModal
-        title="Scanned item not found"
+        title="Scanned Item Not Found"
         lines={['It may have been removed already.']}
         onClose={onClose}
       />
@@ -275,7 +307,7 @@ function ScanEditModal({
   }
 
   return (
-    <ModalLayout title="Edit item" onClose={onClose}>
+    <ModalLayout title="Edit Item" onClose={onClose}>
       <label className="field-label">
         Name:
         <input value={name} onChange={(event) => setName(event.target.value)} />
@@ -303,17 +335,13 @@ function ScanEditModal({
       </div>
 
       <label className="field-label">
-        Expiration:
-        <select
-          value={expirationInDays}
-          onChange={(event) => setExpirationInDays(Number(event.target.value))}
-        >
-          {[2, 4, 7, 10, 14, 21].map((option) => (
-            <option key={option} value={option}>
-              {option < 7 ? `${option} Days` : `${Math.ceil(option / 7)} Weeks`}
-            </option>
-          ))}
-        </select>
+        Expires on:
+        <input
+          type="date"
+          min={todayDateValue()}
+          value={expirationDate}
+          onChange={(event) => setExpirationDate(event.target.value)}
+        />
       </label>
 
       <button
@@ -323,11 +351,11 @@ function ScanEditModal({
           onSaveScanItem(item.id, {
             name: name.trim() || item.name,
             quantity,
-            expirationInDays,
+            expirationDate: expirationDate || toDateInputValue(item.expirationDate),
           })
         }
       >
-        confirm
+        Save
       </button>
     </ModalLayout>
   )
@@ -344,7 +372,7 @@ function ScanRemoveModal({
   if (!item) {
     return (
       <SuccessModal
-        title="Scanned item not found"
+        title="Scanned Item Not Found"
         lines={['It may have been removed already.']}
         onClose={onClose}
       />
@@ -352,21 +380,20 @@ function ScanRemoveModal({
   }
 
   return (
-    <ModalLayout title="Remove from scan?" onClose={onClose}>
-      <p className="modal-highlight">
-        {item.name}, x{item.quantity}
-      </p>
+    <ModalLayout title={`Remove ${item.name}`} onClose={onClose}>
+      <p className="modal-highlight">{item.quantity} total.</p>
+      <p className="inventory-meta">Remove this item from the scan?</p>
 
       <div className="split-actions">
+        <button type="button" className="ghost-button" onClick={onClose}>
+          Back
+        </button>
         <button
           type="button"
-          className="danger-button"
+          className="primary-button"
           onClick={() => onConfirmScanRemove(item.id)}
         >
-          yes, remove
-        </button>
-        <button type="button" className="ghost-button" onClick={onClose}>
-          no, back
+          Remove
         </button>
       </div>
     </ModalLayout>
@@ -388,13 +415,20 @@ function ReminderEditorModal({
   const [inventoryItemId, setInventoryItemId] = useState(
     selectedReminder?.inventoryItemId ?? inventory[0]?.id ?? 0,
   )
-  const [days, setDays] = useState(selectedReminder?.remindInDays ?? 2)
+  const [days, setDays] = useState(selectedReminder?.remindInDays ?? 1)
   const [time, setTime] = useState(selectedReminder?.time ?? '10:00')
+  const selectedItem = inventory.find((item) => item.id === inventoryItemId)
+  const maxReminderDays = selectedItem ? Math.max(daysUntil(selectedItem.expirationDate), 0) : 0
+  const reminderDayOptions = buildReminderDayOptions(maxReminderDays)
+
+  useEffect(() => {
+    setDays((value) => clampReminderDays(value, maxReminderDays))
+  }, [maxReminderDays])
 
   if (inventory.length === 0) {
     return (
       <SuccessModal
-        title="No inventory items"
+        title="No Inventory Items"
         lines={['Add an item before creating a reminder.']}
         onClose={onClose}
       />
@@ -403,7 +437,7 @@ function ReminderEditorModal({
 
   return (
     <ModalLayout
-      title={selectedReminder ? 'Edit reminder' : 'New reminder'}
+      title={selectedReminder ? 'Edit Reminder' : 'New Reminder'}
       onClose={onClose}
     >
       <label className="field-label">
@@ -421,11 +455,11 @@ function ReminderEditorModal({
       </label>
 
       <label className="field-label">
-        Remind me in:
+        Remind me:
         <select value={days} onChange={(event) => setDays(Number(event.target.value))}>
-          {dayOptions.map((option) => (
+          {reminderDayOptions.map((option) => (
             <option key={option} value={option}>
-              {option === 0 ? 'Today' : `${option} Day${option === 1 ? '' : 's'}`}
+              {reminderOptionLabel(option)}
             </option>
           ))}
         </select>
@@ -447,7 +481,7 @@ function ReminderEditorModal({
         className="primary-button full-width"
         onClick={() => onSaveReminder(selectedReminder?.id, inventoryItemId, days, time)}
       >
-        confirm
+        Save
       </button>
     </ModalLayout>
   )
@@ -464,7 +498,7 @@ function ReminderCancelModal({
   if (!reminder) {
     return (
       <SuccessModal
-        title="Reminder not found"
+        title="Reminder Not Found"
         lines={['It may have already been removed.']}
         onClose={onClose}
       />
@@ -472,22 +506,22 @@ function ReminderCancelModal({
   }
 
   return (
-    <ModalLayout title="Cancel reminder?" onClose={onClose}>
+    <ModalLayout title="Cancel Reminder?" onClose={onClose}>
       <p className="modal-highlight">{reminder.itemName}</p>
       <p className="inventory-meta">
-        Set for {relativeLabelFromDays(reminder.remindInDays)}, {toMeridiem(reminder.time)}
+        Set {beforeExpirationLabel(reminder.remindInDays)}, {toMeridiem(reminder.time)}
       </p>
 
       <div className="split-actions">
+        <button type="button" className="ghost-button" onClick={onClose}>
+          Back
+        </button>
         <button
           type="button"
-          className="danger-button"
+          className="primary-button"
           onClick={() => onConfirmReminderCancel(reminder.id)}
         >
-          yes, cancel
-        </button>
-        <button type="button" className="ghost-button" onClick={onClose}>
-          no, back
+          Cancel Reminder
         </button>
       </div>
     </ModalLayout>
@@ -509,8 +543,77 @@ function SuccessModal({ title, lines, onClose }: SuccessModalProps) {
         </p>
       ))}
       <button type="button" className="primary-button full-width" onClick={onClose}>
-        close
+        Close
       </button>
     </ModalLayout>
   )
 }
+
+function toDateInputValue(value: string | undefined): string {
+  if (!value) {
+    return addDaysToDateValue(7)
+  }
+
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) {
+    return addDaysToDateValue(7)
+  }
+
+  return `${parsed.getUTCFullYear()}-${String(parsed.getUTCMonth() + 1).padStart(
+    2,
+    '0',
+  )}-${String(parsed.getUTCDate()).padStart(2, '0')}`
+}
+
+function todayDateValue(): string {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
+    now.getDate(),
+  ).padStart(2, '0')}`
+}
+
+function addDaysToDateValue(days: number): string {
+  const date = new Date()
+  date.setDate(date.getDate() + days)
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+    date.getDate(),
+  ).padStart(2, '0')}`
+}
+
+function createHourlyTimeOptions(startHour: number, endHour: number): string[] {
+  const options: string[] = []
+  for (let hour = startHour; hour <= endHour; hour += 1) {
+    options.push(`${hour.toString().padStart(2, '0')}:00`)
+  }
+  return options
+}
+
+function buildReminderDayOptions(maxReminderDays: number): number[] {
+  const bounded = Math.max(0, Math.min(Math.floor(maxReminderDays), 30))
+  const options = reminderDayPresets.filter((option) => option <= bounded)
+
+  if (!options.includes(bounded)) {
+    options.push(bounded)
+  }
+  if (options.length === 0) {
+    options.push(0)
+  }
+
+  return [...new Set(options)].sort((a, b) => a - b)
+}
+
+function clampReminderDays(value: number, maxReminderDays: number): number {
+  const boundedMax = Math.max(0, Math.min(Math.floor(maxReminderDays), 30))
+  return Math.max(0, Math.min(value, boundedMax))
+}
+
+function reminderOptionLabel(days: number): string {
+  if (days <= 0) {
+    return 'On expiration day'
+  }
+  if (days === 1) {
+    return '1 day before expiration'
+  }
+  return `${days} days before expiration`
+}
+

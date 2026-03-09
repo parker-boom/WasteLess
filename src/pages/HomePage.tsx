@@ -34,7 +34,6 @@ export function HomePage({
   return (
     <section className="screen screen-home">
       <header className="screen-header">
-        <p className="screen-overline">Inventory</p>
         <h1 className="screen-title">Expiring soon</h1>
       </header>
 
@@ -94,10 +93,10 @@ export function HomePage({
           onClick={() => setVisibleCount((count) => count + 4)}
           disabled={!hasMore}
         >
-          load more
+          Load more
         </button>
         <button type="button" className="primary-button" onClick={onOpenAddItems}>
-          + add items
+          + Add items
         </button>
       </div>
     </section>
@@ -143,10 +142,10 @@ function toExpiryParts(label: string): ExpiryParts {
 
 function formatReminderStatus(reminder: Reminder): string {
   return reminder.remindInDays === 0
-    ? 'today'
+    ? 'on expiry day'
     : reminder.remindInDays === 1
-      ? '1 day'
-      : `${reminder.remindInDays} days`
+      ? '1 day before'
+      : `${reminder.remindInDays} days before`
 }
 
 function BellGlyph() {
